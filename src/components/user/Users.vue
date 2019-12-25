@@ -37,7 +37,7 @@
             <!--修改按钮-->
             <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)"></el-button>
             <!--删除按钮-->
-            <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+            <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUser(scope.row.id)"></el-button>
             <!--分配角色按钮-->
             <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
               <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
@@ -46,13 +46,9 @@
         </el-table-column>
       </el-table>
       <!--分页区域-->
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="queryInfo.pagenum"
-        :page-sizes="[1, 2, 5, 10]"
-        :page-size="queryInfo.pagesize"
-        layout="total, sizes, prev, pager, next, jumper"
+      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+        :current-page="queryInfo.pagenum" :page-sizes="[1, 2, 5, 10]"
+        :page-size="queryInfo.pagesize" layout="total, sizes, prev, pager, next, jumper"
         :total="total">
       </el-pagination>
     </el-card>
@@ -253,6 +249,25 @@ export default {
         // 提示修改成功
         this.$message.success('修改成功')
       })
+    },
+    // 根据id删除用户
+    async removeUser(id) {
+      const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      // 如果用户确认删除则返回字符串confirm
+      // 如果用户取消删除则返回字符串cancel
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('删除操作取消')
+      }
+      const {data: res} = await this.$http.delete('users/' + id)
+      if (res.meta.status !== 200) {
+        return this.$message.error('删除用户失败')
+      }
+      this.$message.success('删除成功')
+      this.getUserList()
     }
   }
 }
