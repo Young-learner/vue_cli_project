@@ -112,7 +112,7 @@ export default {
       if (confrimResult !== 'confirm') {
         return this.$message.info('取消删除')
       }
-      const {data: res} = await this.$http.delete(`roles/$ {role.id}/rights/$ {rightId}`)
+      const {data: res} = await this.$http.delete(`roles/${role.id}/rights/${rightId}`)
       if (res.meta.status !== 200) {
         return this.$message.error('删除失败')
       }
@@ -152,7 +152,7 @@ export default {
         ...this.$refs.treeRef.getHalfCheckedKeys()
       ]
       const idStr = keys.join(',')
-      const {data: res} = await this.$http.post(`role/$ { this.roleId }/rights`, {rids: idStr})
+      const {data: res} = await this.$http.post(`role/${this.roleId}/rights`, {rids: idStr})
       if (res.meta.status === 200) {
         return this.$message.error('分配权限失败')
       }

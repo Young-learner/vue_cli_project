@@ -151,7 +151,7 @@ export default {
         return this.$message.error('获取商品分类失败！')
       }
 
-      console.log(res.data)
+      console.log(res.data.result)
       // 把数据列表，赋值给 catelist
       this.catelist = res.data.result
       // 为总数据条数赋值
@@ -184,7 +184,6 @@ export default {
         return this.$message.error('获取父级分类数据失败！')
       }
 
-      console.log(res.data)
       this.parentCateList = res.data
     },
     // 选择项发生变化触发这个函数
@@ -197,7 +196,7 @@ export default {
         this.addCateForm.cat_pid = this.selectedKeys[this.selectedKeys.length - 1]
         // 为当前分类的等级赋值
         this.addCateForm.cat_level = this.selectedKeys.length
-        return console.log(this.selectedKeys)
+        return console.log(this.addCateForm)
       } else {
         // 父级分类的Id
         this.addCateForm.cat_pid = 0

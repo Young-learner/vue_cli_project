@@ -15,7 +15,8 @@ module.exports = {
     'vue/no-unused-vars': 0,
     'space-infix-ops': 0,
     'object-curly-spacing': 0,
-    'comma-spacing': 0
+    'comma-spacing': 0,
+    'no-useless-return': 0
   },
   parserOptions: {
     parser: 'babel-eslint'
