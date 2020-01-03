@@ -61,18 +61,29 @@
         <el-tab-pane label="商品图片" name="3">
           <!--action图片上传地址-->
           <el-upload action="uploadURL" :on-preview="handlePreview"
-            :on-remove="handleRemove" list-type="picture">
+            :on-remove="handleRemove" list-type="picture"
+                     :headers="headerObj" :on-success="handleSuccess">
             <el-button size="small" type="primary">点击上传</el-button>
           </el-upload>
         </el-tab-pane>
-        <el-tab-pane label="商品内容" name="4">商品内容</el-tab-pane>
+        <el-tab-pane label="商品内容" name="4">
+          <!--富文本编辑器组件-->
+          <quill-editor v-model="addForm.goods_introduce"></quill-editor>
+          <!--添加商品-->
+          <el-button type="primary" class="btnAdd" @click="add">添加商品</el-button>
+        </el-tab-pane>
       </el-tabs>
       </el-form>
     </el-card>
+    <!--图片预览对话框-->
+    <el-dialog title="图片预览" :visible.sync="previewVisible" width="50%">
+      <img src="previewPath" alt="" class="previewImg">
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import _ from 'lodash'
 export default {
   data() {
     return {
@@ -82,7 +93,11 @@ export default {
         goods_price: 0,
         goods_weight: 0,
         goods_number: 0,
-        goods_cat: []
+        goods_cat: [],
+        pics: [],
+        // 商品详情描述
+        goods_introduce: '',
+        attrs: []
       },
       addFormRules: {
         goods_name: [
@@ -110,7 +125,13 @@ export default {
       manyTableData: [],
       onlyTableData: [],
       // 上传图片的地址
-      uploadURL: 'http://127.0.0.1:8888/api/private/v1/upload'
+      uploadURL: 'http://127.0.0.1:8888/api/private/v1/upload',
+      // 图片上传的请求头
+      headerObj: {
+        Authorization: window.sessionStorage.getItem('token')
+      },
+      previewPath: '',
+      previewVisible: false
     }
   },
   created() {
@@ -133,7 +154,7 @@ export default {
     beforeTabLeave(activeName, oldActiveName) {
       if (oldActiveName === '0' && this.addForm.goods_cat.length !== 3) {
         this.$message.error('请先选择商品分类')
-        return false
+        return true
       }
     },
     async tabClicked() {
@@ -155,9 +176,59 @@ export default {
       }
     },
     // 处理图片预览
-    handlePreview() {},
+    handlePreview(file) {
+      this.previewPath = file.response.data.url
+      this.previewVisible = true
+    },
     // 处理移除图片的操作
-    handleRemove() {}
+    handleRemove(file) {
+      const filePath = file.response.data.tmp_path
+      const i = this.addForm.pics.findIndex(x => {
+        x.pic = filePath
+      })
+      this.addForm.pics.splice(i, 1)
+    },
+    // 监听图片上传的事件
+    handleSuccess(response) {
+      const picInfo = {
+        pic: response.data.tmp_path
+      }
+      this.addForm.pics.push(picInfo)
+    },
+    // 添加商品
+    add() {
+      this.$refs.addFormRef.vaildate(async vaild => {
+        if (!vaild) {
+          return this.$message.error('请填写必要的表单项')
+        }
+        const form = _.cloneDeep(this.addFrom)
+        form.goods_cat = this.addForm.goods_cat.join(',')
+        // 处理动态参数
+        this.manyTableData.forEach(item => {
+          const newInfo = {
+            attr_id: item.attr_id,
+            attr_value: item.attr_vals.join(' ')
+          }
+          this.addForm.attrs.push(newInfo)
+        })
+        // 处理静态属性
+        this.onlyTableData.forEach(item => {
+          const newInfo = {
+            attr_id: item.attr_id,
+            attr_value: item.attr_vals
+          }
+          this.addForm.attrs.push(newInfo)
+        })
+        form.attrs = this.addForm.attrs
+        const {data: res} = await this.$http.post('goods', form)
+        if (res.meta.status !== 201) {
+          return this.$message.error('添加商品失败')
+        }
+        this.$message.success('添加成功')
+        this.$router.push('/goods')
+      })
+      // 确定商品名称唯一
+    }
   },
   computed: {
     cateID() {
@@ -168,10 +239,17 @@ export default {
     }
   }
 }
+
 </script>
 
 <style lang="less" scoped>
   .el-checkbox{
     margin: 0 10px 0 0 !important;
+  }
+  .previewImg{
+    width: 100%;
+  }
+  .btnAdd{
+    margin-top: 15px;
   }
 </style>
